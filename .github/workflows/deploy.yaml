@@ -27,8 +27,6 @@ jobs:
               -u ${{ secrets.ACR_PUSH_SP_ID }} \
               --password-stdin
           
-      - run: npm install
-      
       - run: docker build --platform linux/amd64 . -t ${{ secrets.ACR_SERVER_NAME }}/$IMAGE:$TAG
       - run: docker push ${{ secrets.ACR_SERVER_NAME }}/$IMAGE:$TAG
       
