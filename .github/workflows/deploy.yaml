@@ -41,10 +41,9 @@ jobs:
             gcloud auth configure-docker ${{ secrets.GCP_GAR_HOST }} --quiet
           elif [[ $CLOUD_PROVIDER = 'azure' ]]; then
             echo "${{ secrets.ACR_PUSH_SP_PASSWORD }}" \
-              | docker login \
+              | docker login $CONTAINER_REGISTRY \
                   -u ${{ secrets.ACR_PUSH_SP_ID }} \
-                  --password-stdin \
-                  $CONTAINER_REGISTRY
+                  --password-stdin
           else # default with AWS
             export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
