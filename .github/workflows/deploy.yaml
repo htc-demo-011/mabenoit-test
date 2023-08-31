@@ -24,9 +24,9 @@ jobs:
           echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
           echo "CLOUD_PROVIDER=${{ vars.CLOUD_PROVIDER }}" >> $GITHUB_ENV
 
-          if [[ $CLOUD_PROVIDER = "google-cloud" ]]; then
+          if [[ $CLOUD_PROVIDER = 'google-cloud' ]]; then
             echo "CONTAINER_REGISTRY=${{ secrets.GCP_GAR }}" >> $GITHUB_ENV
-          elif [[ $CLOUD_PROVIDER = "azure" ]]; then
+          elif [[ $CLOUD_PROVIDER = 'azure' ]]; then
             echo "CONTAINER_REGISTRY=${{ secrets.AZ_ACR }}" >> $GITHUB_ENV
           else # default with AWS
             echo "CONTAINER_REGISTRY=${{ secrets.AWS_ECR }}" >> $GITHUB_ENV
@@ -37,9 +37,9 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCP_GAR_CREDENTIALS }}'
       - run: |
-          if [[ $CLOUD_PROVIDER = "google-cloud" ]]; then
+          if [[ $CLOUD_PROVIDER = 'google-cloud' ]]; then
             gcloud auth configure-docker ${{ secrets.GCP_GAR_HOST }} --quiet
-          elif [[ $CLOUD_PROVIDER = "azure" ]]; then
+          elif [[ $CLOUD_PROVIDER = 'azure' ]]; then
             echo "${{ secrets.AZ_ACR_PASSWORD }}" \
               | docker login \
                   -u ${{ secrets.AZ_ACR_USER }} \
