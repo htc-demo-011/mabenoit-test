@@ -25,9 +25,9 @@ jobs:
           echo "CLOUD_PROVIDER=${{ vars.CLOUD_PROVIDER }}" >> $GITHUB_ENV
 
           if [[ $CLOUD_PROVIDER = 'google-cloud' ]]; then
-            echo "CONTAINER_REGISTRY=${{ secrets.GCP_GAR }}" >> $GITHUB_ENV
-          elif [[ $CLOUD_PROVIDER = 'azure' ]]; then
             echo "CONTAINER_REGISTRY=${{ secrets.GCP_GAR_NAME }}" >> $GITHUB_ENV
+          elif [[ $CLOUD_PROVIDER = 'azure' ]]; then
+            echo "CONTAINER_REGISTRY=${{ secrets.ACR_SERVER_NAME }}" >> $GITHUB_ENV
           else # default with AWS
             echo "CONTAINER_REGISTRY=${{ secrets.AWS_ECR }}" >> $GITHUB_ENV
           fi
