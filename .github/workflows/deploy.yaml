@@ -10,6 +10,8 @@ concurrency:
 env:
 
   IMAGE: mabenoit-test
+  SCORE_HUMANITEC_VERSION: 0.7.0
+  APP_NAME: mabenoit-test
 
 jobs:
   deploy:
@@ -44,10 +46,12 @@ jobs:
                 "commit": "'$GITHUB_SHA'",
                 "ref": "'$GITHUB_REF'"
             }'
+      - uses: score-spec/setup-score@v2
+        with:
+          file: score-humanitec
+          version: ${{ env.SCORE_HUMANITEC_VERSION }}
+      
       - name: Deploy using Score
         run: |
-          wget https://github.com/score-spec/score-humanitec/releases/download/0.6.0/score-humanitec_0.6.0_linux_amd64.tar.gz
-          tar -xvzf ./score-humanitec_0.6.0_linux_amd64.tar.gz
-
-          ./score-humanitec delta --env development --app mabenoit-test --org="${{ secrets.HUMANITEC_ORG_ID }}" --token "${{ secrets.HUMANITEC_TOKEN }}" --deploy --property containers.frontend.image=${{ secrets.ACR_SERVER_NAME }}/$IMAGE:$TAG
+          score-humanitec delta --env development --app ${{ env.APP_NAME }} --org="${{ secrets.HUMANITEC_ORG_ID }}" --token "${{ secrets.HUMANITEC_TOKEN }}" --deploy --property containers.frontend.image=$AWS_ECR/$IMAGE:$TAG
 
