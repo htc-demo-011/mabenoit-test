@@ -27,7 +27,7 @@ jobs:
           if [[ $CLOUD_PROVIDER = 'google-cloud' ]]; then
             echo "CONTAINER_REGISTRY=${{ secrets.GCP_GAR }}" >> $GITHUB_ENV
           elif [[ $CLOUD_PROVIDER = 'azure' ]]; then
-            echo "CONTAINER_REGISTRY=${{ secrets.AZ_ACR }}" >> $GITHUB_ENV
+            echo "CONTAINER_REGISTRY=${{ secrets.GCP_GAR_NAME }}" >> $GITHUB_ENV
           else # default with AWS
             echo "CONTAINER_REGISTRY=${{ secrets.AWS_ECR }}" >> $GITHUB_ENV
           fi
@@ -35,16 +35,16 @@ jobs:
         if: env.CLOUD_PROVIDER == 'google-cloud'
         uses: 'google-github-actions/auth@v1'
         with:
-          credentials_json: '${{ secrets.GCP_GAR_CREDENTIALS }}'
+          credentials_json: '${{ secrets.GCP_GAR_WRITER_KEY }}'
       - run: |
           if [[ $CLOUD_PROVIDER = 'google-cloud' ]]; then
             gcloud auth configure-docker ${{ secrets.GCP_GAR_HOST }} --quiet
           elif [[ $CLOUD_PROVIDER = 'azure' ]]; then
             echo "${{ secrets.AZ_ACR_PASSWORD }}" \
               | docker login \
-                  -u ${{ secrets.AZ_ACR_USER }} \
+                  -u ${{ secrets.ACR_PUSH_SP_ID }} \
                   --password-stdin \
-                  ${{ secrets.AZ_ACR }}
+                  ${{ secrets.ACR_SERVER_NAME }}
           else # default with AWS
             export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
