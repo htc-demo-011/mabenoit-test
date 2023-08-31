@@ -44,7 +44,7 @@ jobs:
               | docker login \
                   -u ${{ secrets.ACR_PUSH_SP_ID }} \
                   --password-stdin \
-                  ${{ secrets.ACR_SERVER_NAME }}
+                  $CONTAINER_REGISTRY
           else # default with AWS
             export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -52,7 +52,7 @@ jobs:
               | docker login \
                   --username AWS \
                   --password-stdin \
-                  ${{ secrets.AWS_ECR }}
+                 $CONTAINER_REGISTRY
           fi
           
       - run: docker build --platform linux/amd64 . -t $CONTAINER_REGISTRY/$IMAGE:$TAG
