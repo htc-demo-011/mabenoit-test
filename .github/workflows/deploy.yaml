@@ -32,7 +32,7 @@ jobs:
             echo "CONTAINER_REGISTRY=${{ secrets.AWS_ECR }}" >> $GITHUB_ENV
           fi
       - name: gcloud auth
-        if: ${{ vars.CLOUD_PROVIDER }} == 'google-cloud'
+        if: vars.CLOUD_PROVIDER == 'google-cloud'
         uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: '${{ secrets.GCP_GAR_CREDENTIALS }}'
