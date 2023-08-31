@@ -12,6 +12,7 @@ env:
   IMAGE: mabenoit-test
   SCORE_HUMANITEC_VERSION: 0.7.0
   APP_NAME: mabenoit-test
+  WORKLOAD_NAME: frontend
 
 jobs:
   deploy:
@@ -20,17 +21,42 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set Tag with SHA
-        run: echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
+        run: |
+          echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
 
+          if [ "${{ vars.CLOUD_PROVIDER }}" = "google-cloud" ]; then
+            echo "CONTAINER_REGISTRY=${{ secrets.GCP_GAR }}" >> $GITHUB_ENV
+          elif [ "${{ vars.CLOUD_PROVIDER }}" = "azure" ]; then
+            echo "CONTAINER_REGISTRY=${{ secrets.AZ_ACR }}" >> $GITHUB_ENV
+          else # default with AWS
+            echo "CONTAINER_REGISTRY=${{ secrets.AWS_ECR }}" >> $GITHUB_ENV
+          fi
+      - name: gcloud auth
+        if: ${{ env.CLOUD_PROVIDER == 'google-cloud' }}
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_GAR_CREDENTIALS }}'
       - run: |
+          if [ "${{ vars.CLOUD_PROVIDER }}" = "google-cloud" ]; then
+            gcloud auth configure-docker ${{ secrets.GCP_GAR_HOST }} --quiet
+          elif [ "${{ vars.CLOUD_PROVIDER }}" = "azure" ]; then
+            echo "${{ secrets.AZ_ACR_PASSWORD }}" \
+              | docker login \
+                  -u ${{ secrets.AZ_ACR_USER }} \
+                  --password-stdin \
+                  ${{ secrets.AZ_ACR }}
+          else # default with AWS
+            export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+              | docker login \
+                  --username AWS \
+                  --password-stdin \
+                  ${{ secrets.AWS_ECR }}
+          fi
           
-          echo "${{ secrets.ACR_PUSH_SP_PASSWORD }}" | docker login \
-              ${{ secrets.ACR_SERVER_NAME }} \
-              -u ${{ secrets.ACR_PUSH_SP_ID }} \
-              --password-stdin
-          
-      - run: docker build --platform linux/amd64 . -t ${{ secrets.ACR_SERVER_NAME }}/$IMAGE:$TAG
-      - run: docker push ${{ secrets.ACR_SERVER_NAME }}/$IMAGE:$TAG
+      - run: docker build --platform linux/amd64 . -t $CONTAINER_REGISTRY/$IMAGE:$TAG
+      - run: docker push $CONTAINER_REGISTRY/$IMAGE:$TAG
       
 
       - name: Inform Humanitec
@@ -40,7 +66,7 @@ jobs:
             --header 'Authorization: Bearer ${{ secrets.HUMANITEC_TOKEN }}' \
             --header 'Content-Type: application/json' \
             --data-raw '{
-                "name": "'${{ secrets.ACR_SERVER_NAME }}/$IMAGE'",
+                "name": "'$CONTAINER_REGISTRY/$IMAGE'",
                 "version": "'$TAG'",
                 "type": "container",
                 "commit": "'$GITHUB_SHA'",
@@ -53,5 +79,5 @@ jobs:
       
       - name: Deploy using Score
         run: |
-          score-humanitec delta --env development --app ${{ env.APP_NAME }} --org="${{ secrets.HUMANITEC_ORG_ID }}" --token "${{ secrets.HUMANITEC_TOKEN }}" --deploy --property containers.frontend.image=${{ secrets.ACR_SERVER_NAME }}/$IMAGE:$TAG
+          score-humanitec delta --env development --app ${{ env.APP_NAME }} --org="${{ secrets.HUMANITEC_ORG_ID }}" --token "${{ secrets.HUMANITEC_TOKEN }}" --deploy --property containers.${{ env.WORKLOAD_NAME }}.image=$CONTAINER_REGISTRY/$IMAGE:$TAG
 
