@@ -22,7 +22,8 @@ jobs:
       - name: Set Tag with SHA
         run: |
           echo "TAG=`echo $GITHUB_SHA | cut -c 1-7`" >> $GITHUB_ENV
-          echo "CLOUD_PROVIDER=${{ vars.CLOUD_PROVIDER }}" >> $GITHUB_ENV
+          CLOUD_PROVIDER=${{ vars.CLOUD_PROVIDER }}
+          echo "CLOUD_PROVIDER=$CLOUD_PROVIDER" >> $GITHUB_ENV
 
           if [[ $CLOUD_PROVIDER = 'google-cloud' ]]; then
             echo "CONTAINER_REGISTRY=${{ secrets.GCP_GAR_NAME }}" >> $GITHUB_ENV
