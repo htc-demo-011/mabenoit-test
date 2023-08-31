@@ -40,7 +40,7 @@ jobs:
           if [[ $CLOUD_PROVIDER = 'google-cloud' ]]; then
             gcloud auth configure-docker ${{ secrets.GCP_GAR_HOST }} --quiet
           elif [[ $CLOUD_PROVIDER = 'azure' ]]; then
-            echo "${{ secrets.AZ_ACR_PASSWORD }}" \
+            echo "${{ secrets.ACR_PUSH_SP_PASSWORD }}" \
               | docker login \
                   -u ${{ secrets.ACR_PUSH_SP_ID }} \
                   --password-stdin \
